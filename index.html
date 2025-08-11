@@ -5,38 +5,70 @@
   <title>جدول المباريات</title>
   <style>
     body { font-family: Arial; direction: rtl; background: #f0f0f0; padding: 20px; }
+    h1 { text-align: center; }
+    select { padding: 5px; margin-bottom: 20px; }
     .match { background: #fff; margin: 10px 0; padding: 10px; border-radius: 5px; box-shadow: 0 0 5px #ccc; }
   </style>
 </head>
 <body>
-  <h1>مباريات اليوم</h1>
-  <div id="matches">جاري تحميل المباريات...</div>
+  <h1>جدول المباريات حسب المنطقة الزمنية</h1>
+
+  <label for="timezone">اختر المنطقة الزمنية:</label>
+  <select id="timezone"></select>
+
+  <div id="matches">اختر توقيت لعرض المباريات...</div>
 
   <script>
-    fetch("https://api-football-v1.p.rapidapi.com/v3/fixtures?timezone=Africa/Cairo", {
+    const timezoneSelect = document.getElementById("timezone");
+    const matchesContainer = document.getElementById("matches");
+
+    // تحميل قائمة المناطق الزمنية
+    fetch("https://api-football-v1.p.rapidapi.com/v3/timezone", {
       method: "GET",
       headers: {
         "X-RapidAPI-Key": "656b01ee56mshf58718c2ed1b6b6p18371ejsn306cd9964734",
         "X-RapidAPI-Host": "api-football-v1.p.rapidapi.com"
       }
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
-      const container = document.getElementById("matches");
-      container.innerHTML = "";
-      data.response.slice(0, 10).forEach(match => {
-        const div = document.createElement("div");
-        div.className = "match";
-        div.innerHTML = `
-          <strong>${match.teams.home.name}</strong> vs <strong>${match.teams.away.name}</strong><br>
-          التاريخ: ${new Date(match.fixture.date).toLocaleString("ar-EG")}
-        `;
-        container.appendChild(div);
+      data.response.forEach(zone => {
+        const option = document.createElement("option");
+        option.value = zone;
+        option.textContent = zone;
+        timezoneSelect.appendChild(option);
       });
-    })
-    .catch(err => {
-      document.getElementById("matches").innerText = "حدث خطأ أثناء تحميل المباريات.";
-      console.error(err);
+    });
+
+    // عند تغيير المنطقة الزمنية
+    timezoneSelect.addEventListener("change", () => {
+      const selectedZone = timezoneSelect.value;
+      matchesContainer.innerHTML = "جاري تحميل المباريات...";
+
+      fetch(`https://api-football-v1.p.rapidapi.com/v3/fixtures?timezone=${selectedZone}`, {
+        method: "GET",
+        headers: {
+          "X-RapidAPI-Key": "656b01ee56mshf58718c2ed1b6b6p18371ejsn306cd9964734",
+          "X-RapidAPI-Host": "api-football-v1.p.rapidapi.com"
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        matchesContainer.innerHTML = "";
+        data.response.slice(0, 10).forEach(match => {
+          const div = document.createElement("div");
+          div.className = "match";
+          div.innerHTML = `
+            <strong>${match.teams.home.name}</strong> vs <strong>${match.teams.away.name}</strong><br>
+            التاريخ: ${new Date(match.fixture.date).toLocaleString("ar-EG")}
+          `;
+          matchesContainer.appendChild(div);
+        });
+      })
+      .catch(err => {
+        matchesContainer.innerText = "حدث خطأ أثناء تحميل المباريات.";
+        console.error(err);
+      });
     });
   </script>
 </body>
