@@ -1,0 +1,11 @@
+fetch('matches.json')
+  .then(response => response.json())
+  .then(data => {
+    const list = document.getElementById('matches');
+    data.forEach(match => {
+      const timeOrScore = match.score || match.time || '';
+      const li = document.createElement('li');
+      li.textContent = `${match.team1} ${timeOrScore} ${match.status} ${match.team2} (${match.competition})`;
+      list.appendChild(li);
+    });
+  });
