@@ -2,11 +2,11 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>جدول المباريات</title>
+  <title>جدول المباريات حسب التوقيت</title>
   <style>
     body { font-family: Arial; direction: rtl; background: #f0f0f0; padding: 20px; }
     h1 { text-align: center; }
-    select { padding: 5px; margin-bottom: 20px; }
+    select { padding: 5px; margin-bottom: 20px; width: 100%; max-width: 400px; }
     .match { background: #fff; margin: 10px 0; padding: 10px; border-radius: 5px; box-shadow: 0 0 5px #ccc; }
   </style>
 </head>
@@ -14,7 +14,9 @@
   <h1>جدول المباريات حسب المنطقة الزمنية</h1>
 
   <label for="timezone">اختر المنطقة الزمنية:</label>
-  <select id="timezone"></select>
+  <select id="timezone">
+    <option disabled selected>جاري تحميل المناطق...</option>
+  </select>
 
   <div id="matches">اختر توقيت لعرض المباريات...</div>
 
@@ -32,6 +34,7 @@
     })
     .then(res => res.json())
     .then(data => {
+      timezoneSelect.innerHTML = "";
       data.response.forEach(zone => {
         const option = document.createElement("option");
         option.value = zone;
@@ -55,6 +58,10 @@
       .then(response => response.json())
       .then(data => {
         matchesContainer.innerHTML = "";
+        if (data.response.length === 0) {
+          matchesContainer.innerHTML = "لا توجد مباريات في هذا التوقيت.";
+          return;
+        }
         data.response.slice(0, 10).forEach(match => {
           const div = document.createElement("div");
           div.className = "match";
